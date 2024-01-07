@@ -22,9 +22,9 @@ The `--fakeroot` can be omitted if you have root access.
 * Create a directory containing one (only one) measurement set and otherwise empty -- pipeline output will go here
 * Change into this directory
 * Unset `PYTHONPATH` and `LD_LIBRARY_PATH` if set
-* `singularity run -B``pwd`` /path/to/casa.sif`
+* `singularity run -B\`pwd\` /path/to/casa.sif`
 
-(The `-B``pwd``` should not be necessary, but it seems to be...)
+(The `-B\`pwd\`` should not be necessary, but it seems to be...)
 
 A complete run of the continuum, Stokes I calibration and
 self-calibration pipeline with JVLA continuum data should now start --
