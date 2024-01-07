@@ -1,0 +1,46 @@
+# This CASA pipescript is meant for use with CASA 6.5.4 and pipeline 2023.1.0.124
+context = h_init()
+context.set_state('ProjectSummary', 'observatory', 'Karl G. Jansky Very Large Array')
+context.set_state('ProjectSummary', 'telescope', 'EVLA')
+context.set_state('ProjectStructure', 'recipe_name', 'hifv_calimage_cont')
+import glob
+try:
+    hifv_importdata(vis=['mySDM'], session=['default'])
+    hifv_hanning()
+    hifv_flagdata(hm_tbuff='1.5int', fracspw=0.01, intents='*POINTING*,*FOCUS*,*ATMOSPHERE*,*SIDEBAND_RATIO*, *UNKNOWN*, *SYSTEM_CONFIGURATION*, *UNSPECIFIED#UNSPECIFIED*')
+    hifv_vlasetjy()
+    hifv_priorcals()
+    hifv_syspower()
+    hifv_testBPdcals()
+    hifv_checkflag(checkflagmode='bpd-vla')
+    hifv_semiFinalBPdcals()
+    hifv_checkflag(checkflagmode='allcals-vla')
+    hifv_solint()
+    hifv_fluxboot()
+    hifv_finalcals()
+    hifv_applycals()
+    hifv_checkflag(checkflagmode='target-vla')
+    hifv_statwt()
+    hifv_plotsummary()
+    hif_makeimlist(intent='PHASE,BANDPASS', specmode='cont')
+    hif_makeimages(hm_masking='centralregion')
+    # self-calibration
+    hifv_flagtargetsdata()
+    hif_mstransform()
+    hif_checkproductsize(maximsize=16384)
+    hif_makeimlist(specmode='cont', datatype='regcal')
+    hif_makeimages(hm_cyclefactor=3.0)
+    hif_selfcal()
+    hif_makeimlist(specmode='cont', datatype='selfcal')
+    hif_makeimages(hm_cyclefactor=3.0)    
+    hifv_pbcor()
+    # create FITS
+    g=glob.glob('*selfcal*image.pbcor.tt0')
+    for f in g:
+        imhead(f,mode='del',hdkey='spw')
+        imhead(f,mode='del',hdkey='virtspw')
+        exportfits(f,fitsimage=f+'.fits',overwrite=True)
+
+    #hifv_exportdata()
+finally:
+    h_save()

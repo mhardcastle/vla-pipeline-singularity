@@ -1,0 +1,56 @@
+# Original singularity image by Brendan Webster
+# Modified by Martin Hardcastle to update base and include pipeline
+
+Bootstrap: docker
+From: rockylinux:8
+
+%post
+yum -y update
+yum -y upgrade
+yum -y install xorg-x11-server-Xvfb fuse-libs fuse
+yum -y install wget perl less ncompress emacs xz libnsl
+
+#Install casa dependencies
+yum -y install fontconfig freetype freetype-devel fontconfig-devel libstdc++
+
+#Install casa
+cd /usr/local
+wget https://uhhpc.herts.ac.uk/~mjh/casa-6.5.4-9-pipeline-2023.1.0.124-py3.8.tar.xz
+tar xf casa-6.5.4-9-pipeline-2023.1.0.124-py3.8.tar.xz
+rm casa-6.5.4-9-pipeline-2023.1.0.124-py3.8.tar.xz
+
+#The above casa installation contains three AppImage files
+#AppImages only work within singularity containers if they are unpacked
+#The following replaces the three packed AppImages with unpacked versions
+cd /usr/local/casa-6.5.4-9-pipeline-2023.1.0.124/lib/py/lib/python3.8/site-packages/casaplotms/__bin__/
+./casaplotms-x86_64.AppImage --appimage-extract
+chmod -R 755 /usr/local/casa-6.5.4-9-pipeline-2023.1.0.124/lib/py/lib/python3.8/site-packages/casaplotms/__bin__/squashfs-root/
+rm ./casaplotms-x86_64.AppImage
+ln -s ./squashfs-root/AppRun ./casaplotms-x86_64.AppImage
+
+cd /usr/local/casa-6.5.4-9-pipeline-2023.1.0.124/lib/py/lib/python3.8/site-packages/casaplotserver/__bin__/
+./casaplotserver-x86_64.AppImage --appimage-extract
+chmod -R 755 /usr/local/casa-6.5.4-9-pipeline-2023.1.0.124/lib/py/lib/python3.8/site-packages/casaplotserver/__bin__/squashfs-root/
+rm ./casaplotserver-x86_64.AppImage
+ln -s ./squashfs-root/AppRun ./casaplotserver-x86_64.AppImage
+
+cd /usr/local/casa-6.5.4-9-pipeline-2023.1.0.124/lib/py/lib/python3.8/site-packages/casaviewer/__bin__/
+./casaviewer-x86_64.AppImage --appimage-extract
+chmod -R 755 /usr/local/casa-6.5.4-9-pipeline-2023.1.0.124/lib/py/lib/python3.8/site-packages/casaviewer/__bin__/squashfs-root
+rm ./casaviewer-x86_64.AppImage
+ln -s ./squashfs-root/AppRun ./casaviewer-x86_64.AppImage
+
+%environment
+export LC_ALL=C
+export PATH=/usr/local/casa-6.5.4-9-pipeline-2023.1.0.124/bin:$PATH
+
+%runscript
+python3 /usr/local/src/startcasa.py
+xvfb-run casa --nologger --nogui --pipeline -c casa_pipescript.py
+
+%files
+casa_pipescript.py /usr/local/src
+startcasa.py /usr/local/src
+
+%labels
+Author UK SKA Regional Centre / B. Webster / M. J. Hardcastle
