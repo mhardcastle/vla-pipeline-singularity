@@ -29,3 +29,9 @@ The `--fakeroot` can be omitted if you have root access.
 A complete run of the continuum, Stokes I calibration and
 self-calibration pipeline with JVLA continuum data should now start --
 it may take several days.
+
+## credits
+
+Brendan Webster wrote the original CASA singularity recipe. Martin
+Hardcastle ported to Rocky 8 and added pipeline functionality. CASA
+pipescripts are adapted from the NRAO pages.
